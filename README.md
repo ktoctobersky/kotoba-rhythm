@@ -13,7 +13,7 @@ iPad / iPhone / PC のブラウザで動作することを想定しています�
 ## デモ（GitHub Pages）
 
 - GitHub Pages:  
-  `https://ktoctobersky.github.io/kotoba-rhythm/(https://ktoctobersky.github.io/kotoba-rhythm/)`
+  `[https://ktoctobersky.github.io/kotoba-rhythm/](https://ktoctobersky.github.io/kotoba-rhythm/)`
 
 ---
 
