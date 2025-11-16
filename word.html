@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>ことばりずむ</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      margin: 0;
+      font-family: "Hiragino Sans", "Yu Gothic", system-ui, sans-serif;
+      background: #27b36d;
+      color: #ffffff;
+      text-align: center;
+    }
+    .app {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    h1 {
+      margin: 0;
+      padding: 8px 0;
+      font-size: 28px;
+    }
+    p.subtitle {
+      margin: 4px 0 12px;
+      font-size: 14px;
+      opacity: 0.9;
+    }
+
+    /* モードタブ */
+    .mode-tabs {
+      display: inline-flex;
+      margin-top: 8px;
+      border-radius: 999px;
+      background: rgba(0, 0, 0, 0.1);
+      padding: 4px;
+      gap: 4px;
+    }
+    .mode-tab {
+      border: none;
+      border-radius: 999px;
+      padding: 6px 18px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      background: transparent;
+      color: #e2f8ec;
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+    .mode-tab.active {
+      background: #ffffff;
+      color: #27b36d;
+    }
+
+    .word-nav {
+      margin-top: 8px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .word-label {
+      font-size: 16px;
+    }
+
+    .play-area {
+      position: relative;
+      margin: 16px auto 8px;
+      max-width: 700px;
+      height: 180px;
+      border-radius: 24px;
+      background: rgba(0, 0, 0, 0.05);
+      overflow: hidden;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+    }
+
+    .tiles {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .tile {
+      width: 80px;
+      height: 80px;
+      background: #ffffff;
+      color: #222222;
+      font-size: 40px;
+      border-radius: 12px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.25);
+      user-select: none;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s;
+    }
+
+    .tile.active {
+      background: #ffe56e;
+      transform: translateY(-10px) scale(1.05);
+      box-shadow: 0 8px 14px rgba(0, 0, 0, 0.4);
+    }
+
+    .controls {
+      margin-top: 8px;
+      display: flex;
+      justify-content: center;
+    }
+    .start-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0;
+      padding: 10px 24px;
+      border: none;
+      border-radius: 999px;
+      background: #ffffff;
+      color: #27b36d;
+      font-size: 18px;
+      font-weight: 700;
+      box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
+      cursor: pointer;
+      transition: transform 0.12s ease, box-shadow 0.12s ease, opacity 0.12s;
+    }
+    .start-btn span.icon {
+      font-size: 24px;
+    }
+    .start-btn:active {
+      transform: translateY(2px);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+    }
+    .start-btn:disabled {
+      opacity: 0.5;
+      cursor: default;
+      box-shadow: none;
+      transform: none;
+    }
+
+    .picture {
+      font-size: 72px;
+      margin-top: 18px;
+      min-height: 96px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .picture-placeholder {
+      font-size: 14px;
+      background: rgba(0, 0, 0, 0.18);
+      padding: 6px 16px;
+      border-radius: 999px;
+    }
+
+    .footer {
+      margin-top: 16px;
+      font-size: 11px;
+      opacity: 0.8;
+    }
+
+    button.nav-btn {
+      margin: 0;
+      padding: 6px 14px;
+      border: none;
+      border-radius: 999px;
+      background: #ffffff;
+      color: #27b36d;
+      font-size: 14px;
+      font-weight: 600;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      cursor: pointer;
+      transition: transform 0.12s ease, box-shadow 0.12s ease, opacity 0.12s;
+    }
+    button.nav-btn:active {
+      transform: translateY(2px);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+    }
+    button.nav-btn:disabled {
+      opacity: 0.5;
+      cursor: default;
+      box-shadow: none;
+      transform: none;
+    }
+
+    .mode-panel {
+      margin-top: 12px;
+    }
+    .hidden {
+      display: none;
+    }
+
+    /* ぱずるモード用 */
+    .puzzle-top {
+      margin-top: 12px;
+      font-size: 32px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+    }
+    .puzzle-word-text {
+      font-size: 24px;
+    }
+    .puzzle-slots {
+      margin-top: 16px;
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .puzzle-slot {
+      width: 64px;
+      height: 64px;
+      border-radius: 12px;
+      border: 3px dashed rgba(255,255,255,0.8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 32px;
+      background: rgba(255,255,255,0.1);
+    }
+    .puzzle-slot.filled {
+      border-style: solid;
+      background: #ffffff;
+      color: #222;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.25);
+    }
+    .puzzle-choices {
+      margin-top: 16px;
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      position: relative;
+    }
+    .puzzle-choice {
+      width: 56px;
+      height: 56px;
+      border-radius: 12px;
+      background: #ffffff;
+      color: #222;
+      font-size: 28px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.25);
+      cursor: pointer;
+      user-select: none;
+      touch-action: none; /* スクロールを抑えてドラッグしやすく */
+    }
+    .puzzle-choice.used {
+      opacity: 0.3;
+      cursor: default;
+    }
+    .puzzle-message {
+      margin-top: 12px;
+      min-height: 24px;
+      font-size: 18px;
+      font-weight: 600;
+    }
+    .puzzle-message.correct {
+      color: #ffe56e;
+    }
+    .puzzle-message.wrong {
+      color: #ffd1d1;
+    }
+    .puzzle-controls {
+      margin-top: 8px;
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .puzzle-btn {
+      border: none;
+      border-radius: 999px;
+      padding: 6px 18px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      background: #ffffff;
+      color: #27b36d;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+
+    @media (max-width: 480px) {
+      .tile {
+        width: 64px;
+        height: 64px;
+        font-size: 32px;
+      }
+      .play-area {
+        height: 160px;
+      }
+      .puzzle-slot {
+        width: 52px;
+        height: 52px;
+        font-size: 26px;
+      }
+      .puzzle-choice {
+        width: 48px;
+        height: 48px;
+        font-size: 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <h1>ことばりずむ</h1>
+    <p class="subtitle">「よむ」で おとをきいて、「ぱずる」で もじをならべよう</p>
+
+    <!-- モードタブ -->
+    <div class="mode-tabs">
+      <button id="tabRead" class="mode-tab active">よむ</button>
+      <button id="tabPuzzle" class="mode-tab">ぱずる</button>
+    </div>
+
+    <!-- 共通：単語ナビ -->
+    <div class="word-nav">
+      <button class="nav-btn" id="prevBtn">◀︎ まえ</button>
+      <span id="wordIndex" class="word-label"></span>
+      <button class="nav-btn" id="nextBtn">つぎ ▶︎</button>
+    </div>
+
+    <!-- よむモード -->
+    <div id="readMode" class="mode-panel">
+      <div id="playArea" class="play-area">
+        <div id="tiles" class="tiles"></div>
+      </div>
+
+      <div class="controls">
+        <button id="startBtn" class="start-btn">
+          <span class="icon">🔊</span>
+          <span>よむ</span>
+        </button>
+      </div>
+
+      <div id="picture" class="picture">
+        <span class="picture-placeholder">
+          「よむ」を おすと ここに え が でるよ
+        </span>
+      </div>
+    </div>
+
+    <!-- ぱずるモード -->
+    <div id="puzzleMode" class="mode-panel hidden">
+      <div class="puzzle-top">
+        <span id="puzzleEmoji">🍎</span>
+        <span id="puzzleWordLabel" class="puzzle-word-text">なにかな？</span>
+      </div>
+
+      <div id="puzzleSlots" class="puzzle-slots"></div>
+
+      <div id="puzzleChoices" class="puzzle-choices"></div>
+
+      <div class="puzzle-controls">
+        <button id="puzzleReplayBtn" class="puzzle-btn">もういちど きく</button>
+        <button id="puzzleResetBtn" class="puzzle-btn">やりなおし</button>
+      </div>
+
+      <div id="puzzleMessage" class="puzzle-message"></div>
+    </div>
+
+    <div class="footer">
+      ※ ぶらうざの おんせい よみあげきのう を つかっています。<br />
+      おとがでないときは、おんりょうや ぶらうざの せっていを かくにんしてね。
+    </div>
+  </div>
+
+  <script>
+    // --- 単語リスト（外部 words.json から読み込む） ---
+    let words = [];
+
+    // ぱずる用のハズレ文字候補
+    const extraKanaPool = Array.from(
+      "あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわん"
+    );
+
+    // 共通要素
+    const tilesContainer = document.getElementById("tiles");
+    const wordIndexLabel = document.getElementById("wordIndex");
+    const pictureEl = document.getElementById("picture");
+    const prevBtn = document.getElementById("prevBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const startBtn = document.getElementById("startBtn");
+
+    const tabRead = document.getElementById("tabRead");
+    const tabPuzzle = document.getElementById("tabPuzzle");
+    const readMode = document.getElementById("readMode");
+    const puzzleMode = document.getElementById("puzzleMode");
+
+    // ぱずる要素
+    const puzzleEmoji = document.getElementById("puzzleEmoji");
+    const puzzleWordLabel = document.getElementById("puzzleWordLabel");
+    const puzzleSlots = document.getElementById("puzzleSlots");
+    const puzzleChoices = document.getElementById("puzzleChoices");
+    const puzzleMessage = document.getElementById("puzzleMessage");
+    const puzzleReplayBtn = document.getElementById("puzzleReplayBtn");
+    const puzzleResetBtn = document.getElementById("puzzleResetBtn");
+
+    let currentIndex = 0;
+    let isPlaying = false;
+    let jpVoice = null;
+
+    // ドラッグ用（ゴースト）
+    let dragChoice = null;
+    let dragGhost = null;
+
+    async function loadWords() {
+      try {
+        const res = await fetch("words.json");
+        if (!res.ok) throw new Error("words.json の読み込みに失敗しました");
+        const data = await res.json();
+        if (!Array.isArray(data) || data.length === 0) {
+          throw new Error("words.json に有効なデータがありません");
+        }
+        words = data;
+        currentIndex = 0;
+        renderWord();
+        setMode("read");
+      } catch (e) {
+        console.error(e);
+        alert("ことばリスト（words.json）の読み込みに失敗しました。");
+      }
+    }
+
+    function loadVoices() {
+      if (!("speechSynthesis" in window)) return;
+      const voices = window.speechSynthesis.getVoices();
+      jpVoice =
+        voices.find(v => v.lang && v.lang.toLowerCase().startsWith("ja")) ||
+        null;
+    }
+    if ("speechSynthesis" in window) {
+      loadVoices();
+      window.speechSynthesis.addEventListener("voiceschanged", loadVoices);
+    }
+
+    function speak(text, rate = 0.9) {
+      if (!("speechSynthesis" in window)) return;
+      window.speechSynthesis.cancel();
+      const uttr = new SpeechSynthesisUtterance(text);
+      uttr.lang = "ja-JP";
+      uttr.rate = rate;
+      uttr.pitch = 1.0;
+      if (jpVoice) uttr.voice = jpVoice;
+      window.speechSynthesis.speak(uttr);
+    }
+
+    function splitMora(text) {
+      const small = "ぁぃぅぇぉゃゅょャュョァィゥェォっッ";
+      const chars = Array.from(text);
+      const result = [];
+      for (const ch of chars) {
+        if (small.includes(ch) && result.length > 0) {
+          result[result.length - 1] += ch;
+        } else {
+          result.push(ch);
+        }
+      }
+      return result;
+    }
+
+    function clearHighlights() {
+      document
+        .querySelectorAll(".tile")
+        .forEach(t => t.classList.remove("active"));
+    }
+    function highlightTile(i) {
+      clearHighlights();
+      const tile = document.querySelector(`.tile[data-i="${i}"]`);
+      if (tile) tile.classList.add("active");
+    }
+
+    function showPicture(word) {
+      pictureEl.innerHTML = "";
+      if (word.emoji) {
+        const span = document.createElement("span");
+        span.textContent = word.emoji;
+        pictureEl.appendChild(span);
+      } else {
+        const span = document.createElement("span");
+        span.className = "picture-placeholder";
+        span.textContent = `「${word.text}」の え を ここに おいてね`;
+        pictureEl.appendChild(span);
+      }
+    }
+
+    function showPlaceholder() {
+      pictureEl.innerHTML = `
+        <span class="picture-placeholder">
+          「よむ」を おすと ここに え が でるよ
+        </span>`;
+    }
+
+    function renderWord() {
+      if (!words.length) return;
+      const word = words[currentIndex];
+      const morae = splitMora(word.text);
+
+      wordIndexLabel.textContent =
+        `${currentIndex + 1} / ${words.length}　「${word.text}」`;
+
+      tilesContainer.innerHTML = "";
+      morae.forEach((m, i) => {
+        const div = document.createElement("div");
+        div.className = "tile";
+        div.dataset.i = String(i);
+        div.textContent = m;
+        tilesContainer.appendChild(div);
+      });
+
+      clearHighlights();
+      showPlaceholder();
+      renderPuzzle(); // ぱずる側も更新
+    }
+
+    function sleep(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    // よむモード
+    async function playSequence() {
+      if (isPlaying || !words.length) return;
+      isPlaying = true;
+      startBtn.disabled = true;
+      prevBtn.disabled = true;
+      nextBtn.disabled = true;
+
+      const word = words[currentIndex];
+      const morae = splitMora(word.text);
+      const tiles = Array.from(document.querySelectorAll(".tile"));
+
+      // 1もじずつ
+      for (let i = 0; i < morae.length; i++) {
+        const tile = tiles[i];
+        if (!tile) continue;
+        highlightTile(i);
+        speak(morae[i], 0.9);
+        await sleep(900);
+        clearHighlights();
+        await sleep(150);
+      }
+
+      // たんごとして
+      const perMoraMs = 320;
+      await sleep(300);
+
+      if ("speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+        const uttrWord = new SpeechSynthesisUtterance(word.text);
+        uttrWord.lang = "ja-JP";
+        uttrWord.rate = 1.1;
+        uttrWord.pitch = 1.0;
+        if (jpVoice) uttrWord.voice = jpVoice;
+        window.speechSynthesis.speak(uttrWord);
+      }
+
+      for (let i = 0; i < morae.length; i++) {
+        const tile = tiles[i];
+        if (!tile) continue;
+        highlightTile(i);
+        await sleep(perMoraMs);
+      }
+      clearHighlights();
+      showPicture(word);
+
+      startBtn.disabled = false;
+      prevBtn.disabled = false;
+      nextBtn.disabled = false;
+      isPlaying = false;
+    }
+
+    // ぱずるモード
+    function shuffle(array) {
+      const arr = array.slice();
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    function makeChoicesWithExtras(morae) {
+      const base = morae.slice();
+      const used = new Set(morae.map(m => m[0]));
+      const candidates = extraKanaPool.filter(k => !used.has(k));
+      const extraCount = 3;
+      const extras = shuffle(candidates).slice(0, extraCount);
+      const allChoices = base.concat(extras);
+      return shuffle(allChoices);
+    }
+
+    function renderPuzzle() {
+      if (!words.length) return;
+      const word = words[currentIndex];
+      const morae = splitMora(word.text);
+
+      puzzleEmoji.textContent = word.emoji || "❓";
+      puzzleWordLabel.textContent = "なにかな？";
+      puzzleMessage.textContent = "";
+      puzzleMessage.className = "puzzle-message";
+
+      // スロット
+      puzzleSlots.innerHTML = "";
+      morae.forEach((m, i) => {
+        const slot = document.createElement("div");
+        slot.className = "puzzle-slot";
+        slot.dataset.index = String(i);
+        slot.dataset.mora = "";
+        puzzleSlots.appendChild(slot);
+      });
+
+      // ひらがなチップ
+      puzzleChoices.innerHTML = "";
+      const choices = makeChoicesWithExtras(morae);
+
+      choices.forEach(m => {
+        const choice = document.createElement("div");
+        choice.className = "puzzle-choice";
+        choice.textContent = m;
+        choice.dataset.mora = m;
+        puzzleChoices.appendChild(choice);
+
+        // Pointer Events でドラッグ実装
+        choice.addEventListener("pointerdown", e => {
+          if (choice.classList.contains("used")) return;
+          e.preventDefault();
+          startDrag(choice, e);
+        });
+      });
+
+      speak(word.text, 1.0);
+    }
+
+    function startDrag(choiceEl, e) {
+      dragChoice = choiceEl;
+
+      // ゴースト要素
+      dragGhost = document.createElement("div");
+      dragGhost.textContent = choiceEl.dataset.mora;
+      dragGhost.style.position = "fixed";
+      dragGhost.style.left = `${e.clientX - 30}px`;
+      dragGhost.style.top = `${e.clientY - 30}px`;
+      dragGhost.style.width = "56px";
+      dragGhost.style.height = "56px";
+      dragGhost.style.borderRadius = "12px";
+      dragGhost.style.background = "#ffffff";
+      dragGhost.style.color = "#222";
+      dragGhost.style.fontSize = "28px";
+      dragGhost.style.display = "flex";
+      dragGhost.style.justifyContent = "center";
+      dragGhost.style.alignItems = "center";
+      dragGhost.style.boxShadow = "0 3px 6px rgba(0,0,0,0.35)";
+      dragGhost.style.pointerEvents = "none";
+      dragGhost.style.zIndex = "9999";
+      document.body.appendChild(dragGhost);
+
+      choiceEl.setPointerCapture(e.pointerId);
+
+      const moveHandler = ev => {
+        if (!dragGhost) return;
+        dragGhost.style.left = `${ev.clientX - 30}px`;
+        dragGhost.style.top = `${ev.clientY - 30}px`;
+      };
+
+      const upHandler = ev => {
+        choiceEl.releasePointerCapture(ev.pointerId);
+        document.removeEventListener("pointermove", moveHandler);
+        document.removeEventListener("pointerup", upHandler);
+
+        if (dragGhost) {
+          const dropX = ev.clientX;
+          const dropY = ev.clientY;
+          dragGhost.remove();
+          dragGhost = null;
+
+          const slots = Array.from(
+            puzzleSlots.querySelectorAll(".puzzle-slot")
+          );
+          const targetSlot = slots.find(slot => {
+            const r = slot.getBoundingClientRect();
+            return (
+              dropX >= r.left &&
+              dropX <= r.right &&
+              dropY >= r.top &&
+              dropY <= r.bottom
+            );
+          });
+
+          if (targetSlot && !targetSlot.dataset.mora) {
+            applyChoiceToSlot(choiceEl, targetSlot);
+          }
+        }
+        dragChoice = null;
+      };
+
+      document.addEventListener("pointermove", moveHandler);
+      document.addEventListener("pointerup", upHandler);
+    }
+
+    function applyChoiceToSlot(choiceEl, slotEl) {
+      if (!choiceEl || !slotEl) return;
+      if (choiceEl.classList.contains("used")) return;
+      if (slotEl.dataset.mora) return;
+
+      const mora = choiceEl.dataset.mora;
+      slotEl.dataset.mora = mora;
+      slotEl.textContent = mora;
+      slotEl.classList.add("filled");
+      choiceEl.classList.add("used");
+
+      const slots = Array.from(
+        puzzleSlots.querySelectorAll(".puzzle-slot")
+      );
+      const allFilled = slots.every(s => s.dataset.mora);
+      if (allFilled) {
+        checkPuzzleAnswer();
+      }
+    }
+
+    function checkPuzzleAnswer() {
+      const word = words[currentIndex];
+      const morae = splitMora(word.text);
+      const slots = Array.from(
+        puzzleSlots.querySelectorAll(".puzzle-slot")
+      );
+      const answer = slots.map(s => s.dataset.mora).join("");
+
+      if (answer === morae.join("")) {
+        puzzleMessage.textContent = "ぴんぽーん！　せいかい！";
+        puzzleMessage.classList.add("correct");
+        speak("せいかい！", 1.1);
+      } else {
+        puzzleMessage.textContent = `ざんねん… せいかいは 「${word.text}」`;
+        puzzleMessage.classList.add("wrong");
+        slots.forEach((s, i) => {
+          s.dataset.mora = morae[i];
+          s.textContent = morae[i];
+          s.classList.add("filled");
+        });
+        speak("ざんねん。せいかいは " + word.text, 1.0);
+      }
+    }
+
+    function resetPuzzle() {
+      renderPuzzle();
+    }
+
+    function setMode(mode) {
+      if (mode === "read") {
+        tabRead.classList.add("active");
+        tabPuzzle.classList.remove("active");
+        readMode.classList.remove("hidden");
+        puzzleMode.classList.add("hidden");
+      } else {
+        tabRead.classList.remove("active");
+        tabPuzzle.classList.add("active");
+        readMode.classList.add("hidden");
+        puzzleMode.classList.remove("hidden");
+        renderPuzzle();
+      }
+    }
+
+    // イベント
+    prevBtn.addEventListener("click", () => {
+      if (isPlaying || !words.length) return;
+      currentIndex = (currentIndex - 1 + words.length) % words.length;
+      renderWord();
+    });
+
+    nextBtn.addEventListener("click", () => {
+      if (isPlaying || !words.length) return;
+      currentIndex = (currentIndex + 1) % words.length;
+      renderWord();
+    });
+
+    startBtn.addEventListener("click", playSequence);
+
+    tabRead.addEventListener("click", () => setMode("read"));
+    tabPuzzle.addEventListener("click", () => setMode("puzzle"));
+
+    puzzleReplayBtn.addEventListener("click", () => {
+      if (!words.length) return;
+      const word = words[currentIndex];
+      speak(word.text, 1.0);
+    });
+
+    puzzleResetBtn.addEventListener("click", resetPuzzle);
+
+    // 初期表示：words.json を読み込む
+    loadWords();
+  </script>
+</body>
+</html>
